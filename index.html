@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+        <meta charset="UTF-8" />
+        <!-- 文字コードの指定 -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <!-- レスポンシブデザインのためのビューポートの設定 -->
+        <title>チャットボット</title>
+        <!-- ウェブページのタイトル -->
+        <style>
+                body {
+                        font-family: Arial, sans-serif;
+                        /* フォントの設定 */
+                        background-color: #f5f5f5;
+                        /* 背景色の設定 */
+                        color: #333;
+                        /* テキストカラーの設定 */
+                        display: flex;
+                        /* フレックスボックスレイアウトの適用 */
+                        flex-direction: column;
+                        /* フレックスボックスの方向を縦に設定 */
+                        align-items: center;
+                        /* アイテムを中央揃えに設定 */
+                }
+
+                h1 {
+                        font-size: 24px;
+                        /* ヘッダーのフォントサイズ設定 */
+                        margin-bottom: 10px;
+                        /* ヘッダーの下側のマージン設定 */
+                }
+
+                /* 以下はチャットの履歴表示エリアのスタイル設定 */
+                #chat-history {
+                        display: flex;
+                        flex-direction: column-reverse;
+                        overflow-y: scroll;
+                        height: 500px;
+                        width: 50%;
+                        margin-bottom: 20px;
+                        padding: 10px;
+                        border: 1px solid #ccc;
+                        background-color: #ffffff;
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                }
+
+                /* メッセージのスタイル設定 */
+                .message-container {
+                        display: flex;
+                        flex-direction: column;
+                        margin-bottom: 15px;
+                }
+
+                /* ユーザーとAIのメッセージの色をそれぞれ設定 */
+                .user .message {
+                        background-color: #e1ffc7;
+                        align-self: flex-start;
+                }
+
+                .ai .message {
+                        background-color: #a0d8ef;
+                        align-self: flex-end;
+                }
+
+                .message {
+                        display: inline-block;
+                        max-width: 70%;
+                        padding: 5px 10px;
+                        border-radius: 5px;
+                        word-wrap: break-word;
+                        white-space: pre-wrap;
+                }
+
+                /* テキスト入力エリアのスタイル設定 */
+                input[type="text"] {
+                        padding: 5px;
+                        height: 20px;
+                        width: 50%;
+                        border: 1px solid #ccc;
+                        border-radius: 3px;
+                        outline: none;
+                        margin-right: 10px;
+                        /* 追加 */
+                }
+
+                /* 送信ボタンのスタイル設定 */
+                button {
+                        background-color: #4caf50;
+                        border: none;
+                        color: white;
+                        padding: 8px 16px;
+                        text-align: center;
+                        font-size: 14px;
+                        cursor: pointer;
+                        border-radius: 3px;
+                        outline: none;
+                        margin-top: 10px;
+                }
+
+                /* ボタンのhover時の色を設定 */
+                button:hover {
+                        background-color: #45a049;
+                }
+        </style>
+
+</head>
+
+
+<body>
+        <h1>チャットボット</h1>
+        <!-- ヘッダータイトル -->
+        <div id="chat-history"></div>
+        <!-- チャット履歴表示エリア -->
+        <input type="text" id="user-input" placeholder="メッセージを入力してください" />
+        <!-- ユーザー入力エリア -->
+        <button onclick="chat()">送信</button>
+        <!-- 送信ボタン -->
+
+        <script>
+                /* ユーザーの入力をサーバーに送信し、レスポンスを取得する関数 */
+                async function sendRequest(userInput) {
+                        const response = await fetch(
+                                "https://u4xpjtoskj.execute-api.ap-northeast-1.amazonaws.com/prod/chat",
+                                {
+                                        method: "POST", // POSTメソッドを使用
+                                        headers: {
+                                                "Content-Type": "application/json", // コンテンツタイプをJSONに設定
+                                        },
+                                        body: JSON.stringify({ user_input: userInput }), // ユーザー入力をJSON形式でリクエストボディに追加
+                                }
+                        );
+                        const data = await response.json(); // レスポンスをJSONとして解析
+                        const parsedData = JSON.parse(data.body); // レスポンスボディをさらに解析
+                        return parsedData.response; // レスポンスからチャットボットの応答を返す
+                }
+                /* ユーザーが送信ボタンをクリックしたときの動作を定義する関数 */
+                async function chat() {
+                        const userInput = document.getElementById("user-input").value; // ユーザー入力を取得
+                        const response = await sendRequest(userInput); // ユーザー入力をサーバーに送信し、レスポンスを取得
+                        // チャット履歴にユーザーの入力とチャットボットの応答を追加する
+                        const chatHistory = document.getElementById("chat-history");
+                        chatHistory.innerHTML = `
+                        <div class="message-container user">
+                        <div class="message">あなた: ${userInput}</div>
+                        </div>` + chatHistory.innerHTML;
+                        chatHistory.innerHTML = `
+                        <div class="message-container ai">
+                        <div class="message">${response}</div>
+                        </div>` + chatHistory.innerHTML;
+                        // テキストボックス内をクリアする
+                        document.getElementById("user-input").value = "";
+                }
+        </script>
+</body>
+
+</html>
